@@ -40,9 +40,9 @@ py_binary(
 )
 
 py_binary(
-  name = "version",
-  srcs = ["version.py"],
-  srcs_version = "PY2AND3",
+    name = "version",
+    srcs = ["version.py"],
+    srcs_version = "PY2AND3",
 )
 
 tensorboard_zip_file(
@@ -91,3 +91,59 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+py_library(
+    name = "util",
+    srcs = ["util.py"],
+    srcs_version = "PY2AND3",
+    deps = ["//tensorboard:expect_tensorflow_installed"],
+)
+
+py_library(
+    name = "test_util",
+    testonly = 1,
+    srcs = ["test_util.py"],
+    srcs_version = "PY2AND3",
+)
+
+py_library(
+    name = "loader",
+    srcs = ["loader.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":schema",
+        ":util",
+        "//tensorboard:expect_tensorflow_installed",
+        "@six_archive//:six",
+    ],
+)
+
+py_test(
+    name = "loader_test",
+    size = "small",
+    srcs = ["loader_test.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":loader",
+        ":test_util",
+        "//tensorboard:expect_tensorflow_installed",
+    ],
+)
+
+py_library(
+    name = "schema",
+    srcs = ["schema.py"],
+    srcs_version = "PY2AND3",
+)
+
+py_binary(
+    name = "load",
+    srcs = ["loader.py"],
+    main = "loader.py",
+    srcs_version = "PY2AND3",
+    deps = [
+        ":schema",
+        ":util",
+        "//tensorboard:expect_tensorflow_installed",
+        "@six_archive//:six",
+    ],
+)
