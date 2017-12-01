@@ -119,7 +119,7 @@ limitations under the License.
           </div>
         </template>
         <template is="dom-if" if="[[!_dataNotFound]]">
-          <tf-tag-filterer tag-filter="{{_tagFilter}}"></tf-tag-filterer>
+          <tf-tag-filterer></tf-tag-filterer>
           <template is="dom-repeat" items="[[_categories]]" as="category">
             <tf-category-pane category="[[category]]">
               <tf-paginated-view
@@ -231,6 +231,10 @@ limitations under the License.
           value: () => new tf_backend.RequestManager(50),
         },
       },
+      observers: [
+        '_bindTagFilter(_dataNotFound)',
+      ],
+
       _showDownloadLinksObserver: tf_storage.getBooleanObserver(
           '_showDownloadLinks', {defaultValue: false, useLocalStorage: true}),
       _smoothingWeightObserver: tf_storage.getNumberObserver(
@@ -240,7 +244,6 @@ limitations under the License.
       _computeSmoothingEnabled(_smoothingWeight) {
         return _smoothingWeight > 0;
       },
-
 
       ready() {
         this.reload();
@@ -282,6 +285,28 @@ limitations under the License.
         // suffix. We can trim that from the display name.
         const defaultDisplayName = tag.replace(/\/scalar_summary$/, '');
         return tf_utils.aggregateTagInfo(runToTagInfo, defaultDisplayName);
+      },
+      _setTagFilterToThatOfFilterInput(tagFilterer) {
+         this.set('_tagFilter', tagFilterer.tagFilter);
+      },
+      _bindTagFilter(dataNotFound) {
+        if (dataNotFound) {
+          return;
+        }
+
+        // We do this asynchronously because we must first wait for the DOM to
+        // update.
+        this.async(() => {
+          // When the input of the tag filterer changes, change the tag filter
+          // stored by this component. We manually listen instead of binding
+          // because polymer otherwise does not update the _tagFilter property
+          // of this component upon the initialization of the filterer.
+          const tagFilter = this.$$('tf-tag-filterer');
+          tagFilter.addEventListener('tag-filter-changed', (event) => {
+            this._setTagFilterToThatOfFilterInput(event.target);
+          }, false);
+          this._setTagFilterToThatOfFilterInput(tagFilter);
+        });
       },
     });
 
